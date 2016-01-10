@@ -17,8 +17,6 @@
 package com.example.david.header_animation_demo.widget;
 
 import android.content.Context;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.SparseIntArray;
 import android.view.MotionEvent;
@@ -27,12 +25,11 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * 模仿github开源框架ObservableListView
+ */
 public class ObservableListView extends ListView implements Scrollable {
 
-    // Fields that should be saved onSaveInstanceState
     private int mPrevFirstVisiblePosition;
     private int mPrevFirstVisibleChildHeight = -1;
     private int mPrevScrolledChildrenHeight;
@@ -40,15 +37,12 @@ public class ObservableListView extends ListView implements Scrollable {
     private int mScrollY;
     private SparseIntArray mChildrenHeights;
 
-    // Fields that don't need to be saved onSaveInstanceState
     private ObservableScrollViewCallbacks mCallbacks;
-    private List<ObservableScrollViewCallbacks> mCallbackCollection;
     private ScrollState mScrollState;
     private boolean mFirstScroll;
     private boolean mDragging;
     private boolean mIntercepted;
     private MotionEvent mPrevMoveEvent;
-    private ViewGroup mTouchInterceptionViewGroup;
 
     private OnScrollListener mOriginalScrollListener;
     private OnScrollListener mScrollListener = new OnScrollListener() {
@@ -91,12 +85,6 @@ public class ObservableListView extends ListView implements Scrollable {
         }
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                // Whether or not motion events are consumed by children,
-                // flag initializations which are related to ACTION_DOWN events should be executed.
-                // Because if the ACTION_DOWN is consumed by children and only ACTION_MOVEs are
-                // passed to parent (this view), the flags will be invalid.
-                // Also, applications might implement initialization codes to onDownMotionEvent,
-                // so call it here.
                 mFirstScroll = mDragging = true;
                 dispatchOnDownMotionEvent();
                 break;
@@ -123,23 +111,14 @@ public class ObservableListView extends ListView implements Scrollable {
                 float diffY = ev.getY() - mPrevMoveEvent.getY();
                 mPrevMoveEvent = MotionEvent.obtainNoHistory(ev);
                 if (getCurrentScrollY() - diffY <= 0) {
-                    // Can't scroll anymore.
 
                     if (mIntercepted) {
-                        // Already dispatched ACTION_DOWN event to parents, so stop here.
                         return false;
                     }
 
-                    // Apps can set the interception target other than the direct parent.
                     final ViewGroup parent;
-                    if (mTouchInterceptionViewGroup == null) {
-                        parent = (ViewGroup) getParent();
-                    } else {
-                        parent = mTouchInterceptionViewGroup;
-                    }
+                    parent = (ViewGroup) getParent();
 
-                    // Get offset to parents. If the parent is not the direct parent,
-                    // we should aggregate offsets from all of the parents.
                     float offsetX = 0;
                     float offsetY = 0;
                     for (View v = this; v != null && v != parent; ) {
@@ -157,13 +136,8 @@ public class ObservableListView extends ListView implements Scrollable {
                     if (parent.onInterceptTouchEvent(event)) {
                         mIntercepted = true;
 
-                        // If the parent wants to intercept ACTION_MOVE events,
-                        // we pass ACTION_DOWN event to the parent
-                        // as if these touch events just have began now.
                         event.setAction(MotionEvent.ACTION_DOWN);
 
-                        // Return this onTouchEvent() first and set ACTION_DOWN event for parent
-                        // to the queue, to keep events sequence.
                         post(new Runnable() {
                             @Override
                             public void run() {
@@ -172,9 +146,6 @@ public class ObservableListView extends ListView implements Scrollable {
                         });
                         return false;
                     }
-                    // Even when this can't be scrolled anymore,
-                    // simply returning false here may cause subView's click,
-                    // so delegate it to super.
                     return super.onTouchEvent(ev);
                 }
                 break;
@@ -184,44 +155,12 @@ public class ObservableListView extends ListView implements Scrollable {
 
     @Override
     public void setOnScrollListener(OnScrollListener l) {
-        // Don't set l to super.setOnScrollListener().
-        // l receives all events through mScrollListener.
         mOriginalScrollListener = l;
     }
 
     @Override
     public void setScrollViewCallbacks(ObservableScrollViewCallbacks listener) {
         mCallbacks = listener;
-    }
-
-
-    @Override
-    public void removeScrollViewCallbacks(ObservableScrollViewCallbacks listener) {
-        if (mCallbackCollection != null) {
-            mCallbackCollection.remove(listener);
-        }
-    }
-
-    @Override
-    public void clearScrollViewCallbacks() {
-        if (mCallbackCollection != null) {
-            mCallbackCollection.clear();
-        }
-    }
-
-    @Override
-    public void setTouchInterceptionViewGroup(ViewGroup viewGroup) {
-        mTouchInterceptionViewGroup = viewGroup;
-    }
-
-    @Override
-    public void scrollVerticallyTo(int y) {
-        View firstVisibleChild = getChildAt(0);
-        if (firstVisibleChild != null) {
-            int baseHeight = firstVisibleChild.getHeight();
-            int position = y / baseHeight;
-            setSelection(position);
-        }
     }
 
     @Override
@@ -249,16 +188,13 @@ public class ObservableListView extends ListView implements Scrollable {
             View firstVisibleChild = getChildAt(0);
             if (firstVisibleChild != null) {
                 if (mPrevFirstVisiblePosition < firstVisiblePosition) {
-                    // scroll down
+                    // 向下滑动
                     int skippedChildrenHeight = 0;
                     if (firstVisiblePosition - mPrevFirstVisiblePosition != 1) {
                         for (int i = firstVisiblePosition - 1; i > mPrevFirstVisiblePosition; i--) {
                             if (0 < mChildrenHeights.indexOfKey(i)) {
                                 skippedChildrenHeight += mChildrenHeights.get(i);
                             } else {
-                                // Approximate each item's height to the first visible child.
-                                // It may be incorrect, but without this, scrollY will be broken
-                                // when scrolling from the bottom.
                                 skippedChildrenHeight += firstVisibleChild.getHeight();
                             }
                         }
@@ -266,16 +202,13 @@ public class ObservableListView extends ListView implements Scrollable {
                     mPrevScrolledChildrenHeight += mPrevFirstVisibleChildHeight + skippedChildrenHeight;
                     mPrevFirstVisibleChildHeight = firstVisibleChild.getHeight();
                 } else if (firstVisiblePosition < mPrevFirstVisiblePosition) {
-                    // scroll up
+                    // 向上滑动
                     int skippedChildrenHeight = 0;
                     if (mPrevFirstVisiblePosition - firstVisiblePosition != 1) {
                         for (int i = mPrevFirstVisiblePosition - 1; i > firstVisiblePosition; i--) {
                             if (0 < mChildrenHeights.indexOfKey(i)) {
                                 skippedChildrenHeight += mChildrenHeights.get(i);
                             } else {
-                                // Approximate each item's height to the first visible child.
-                                // It may be incorrect, but without this, scrollY will be broken
-                                // when scrolling from the bottom.
                                 skippedChildrenHeight += firstVisibleChild.getHeight();
                             }
                         }
@@ -283,7 +216,7 @@ public class ObservableListView extends ListView implements Scrollable {
                     mPrevScrolledChildrenHeight -= firstVisibleChild.getHeight() + skippedChildrenHeight;
                     mPrevFirstVisibleChildHeight = firstVisibleChild.getHeight();
                 } else if (firstVisiblePosition == 0) {
-                    // no Scroll
+                    // 没有滑动
                     mPrevFirstVisibleChildHeight = firstVisibleChild.getHeight();
                     mPrevScrolledChildrenHeight = 0;
                 }
@@ -315,23 +248,11 @@ public class ObservableListView extends ListView implements Scrollable {
         if (mCallbacks != null) {
             mCallbacks.onDownMotionEvent();
         }
-        if (mCallbackCollection != null) {
-            for (int i = 0; i < mCallbackCollection.size(); i++) {
-                ObservableScrollViewCallbacks callbacks = mCallbackCollection.get(i);
-                callbacks.onDownMotionEvent();
-            }
-        }
     }
 
     private void dispatchOnScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
         if (mCallbacks != null) {
             mCallbacks.onScrollChanged(scrollY, firstScroll, dragging);
-        }
-        if (mCallbackCollection != null) {
-            for (int i = 0; i < mCallbackCollection.size(); i++) {
-                ObservableScrollViewCallbacks callbacks = mCallbackCollection.get(i);
-                callbacks.onScrollChanged(scrollY, firstScroll, dragging);
-            }
         }
     }
 
@@ -339,16 +260,10 @@ public class ObservableListView extends ListView implements Scrollable {
         if (mCallbacks != null) {
             mCallbacks.onUpOrCancelMotionEvent(scrollState);
         }
-        if (mCallbackCollection != null) {
-            for (int i = 0; i < mCallbackCollection.size(); i++) {
-                ObservableScrollViewCallbacks callbacks = mCallbackCollection.get(i);
-                callbacks.onUpOrCancelMotionEvent(scrollState);
-            }
-        }
     }
 
     private boolean hasNoCallbacks() {
-        return mCallbacks == null && mCallbackCollection == null;
+        return mCallbacks == null;
     }
 
 }

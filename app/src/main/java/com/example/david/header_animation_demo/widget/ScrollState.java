@@ -19,18 +19,17 @@ package com.example.david.header_animation_demo.widget;
 
 public enum ScrollState {
     /**
-     *
-     * 为发生滚动事件
+     *  娌℃湁鍙戠敓浠讳綍婊戝姩浜嬩欢
      */
     STOP,
 
     /**
-     * 向上滑动事件
+     * 鍙戠敓鍚戜笂婊戝姩浜嬩欢
      */
     UP,
 
     /**
-     * 向下滑动事件
+     * 鍙戠敓鍚戜笅婊戝姩浜嬩欢
      */
     DOWN,
 }
