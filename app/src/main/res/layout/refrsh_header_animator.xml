@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_refresh_head_animator"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.example.david.header_animation_demo.widget.SearchTransformationHeader
+        android:id="@+id/refresh_head_background_animator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <View
+            android:id="@+id/viewStub_animator"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:background="@android:color/transparent" />
+
+        <RelativeLayout
+            android:id="@+id/refresh_head_top_animator"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_below="@id/viewStub_animator"
+            android:background="@android:color/transparent">
+
+            <include
+                android:id="@+id/actionbr_right_animator"
+                layout="@layout/header_actionbar_right" />
+
+            <!-- 由于设计图要求搜索框巨中，我实在懒的去算了。直接算个假的隐藏，正好这块没有任何Touch事件 -->
+            <LinearLayout
+                android:id="@+id/temp_actionbar_search_animator"
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="19dp"
+                android:layout_toLeftOf="@id/actionbr_right_animator"
+                android:background="@drawable/bg_grey_round"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="invisible">
+
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="10dp"
+                    android:src="@mipmap/ic_city_search" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="8dp"
+                    android:ellipsize="end"
+                    android:hint="你想去哪？"
+                    android:singleLine="true"
+                    android:textColor="#555555"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/tujia_logo_animator"
+                android:layout_width="85dp"
+                android:layout_height="21dp"
+                android:layout_centerInParent="true"
+                android:src="@mipmap/tujia_logo" />
+
+        </RelativeLayout>
+    </com.example.david.header_animation_demo.widget.SearchTransformationHeader>
+
+    <LinearLayout
+        android:id="@+id/actionbar_search_animator"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_below="@id/refresh_head_background_animator"
+        android:layout_gravity="center"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="19dp"
+        android:background="@drawable/bg_grey_round"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:src="@mipmap/ic_city_search" />
+
+        <TextView
+            android:id="@+id/searchKey_animator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="8dp"
+            android:ellipsize="end"
+            android:hint="你想去哪？"
+            android:singleLine="true"
+            android:textColor="#555555"
+            android:textSize="15sp" />
+    </LinearLayout>
+</RelativeLayout>

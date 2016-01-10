@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/refresh_head_image"
+        android:layout_width="match_parent"
+        android:layout_height="340dp"
+        android:scaleType="fitXY"
+        android:layout_marginBottom="20dp"
+        android:src="@mipmap/about_share" />
+
+    <include
+        layout="@layout/refresh_head"/>
+
+</FrameLayout>
