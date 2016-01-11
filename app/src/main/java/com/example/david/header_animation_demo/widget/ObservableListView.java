@@ -25,9 +25,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
-/**
- * 模仿github开源框架ObservableListView
- */
+
 public class ObservableListView extends ListView implements Scrollable {
 
     private int mPrevFirstVisiblePosition;
