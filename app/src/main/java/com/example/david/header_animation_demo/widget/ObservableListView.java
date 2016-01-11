@@ -43,6 +43,10 @@ public class ObservableListView extends ListView implements Scrollable {
     private boolean mDragging;
     private boolean mIntercepted;
     private MotionEvent mPrevMoveEvent;
+    private float mLastMontionX;
+    private float mLastMontionY;
+    private float mDistanceX;
+    private float mDistanceY;
 
     private OnScrollListener mOriginalScrollListener;
     private OnScrollListener mScrollListener = new OnScrollListener() {
@@ -80,13 +84,29 @@ public class ObservableListView extends ListView implements Scrollable {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
 
-        if (hasNoCallbacks()) {
-            return super.onInterceptTouchEvent(ev);
-        }
+
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                mLastMontionX = ev.getX();
+                mLastMontionY = ev.getY();
+                mDistanceX = 0;
+                mDistanceY = 0;
                 mFirstScroll = mDragging = true;
-                dispatchOnDownMotionEvent();
+                if(!hasNoCallbacks()) {
+                    dispatchOnDownMotionEvent();
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float currentX = ev.getX();
+                float currentY = ev.getY();
+                mDistanceX = currentX - mLastMontionX;
+                mDistanceY = currentY - mLastMontionY;
+                mLastMontionX = currentX;
+                mLastMontionY = currentY;
+
+                if(Math.abs(mDistanceX) > Math.abs(mDistanceY)) {
+                    return false;
+                }
                 break;
         }
         return super.onInterceptTouchEvent(ev);
