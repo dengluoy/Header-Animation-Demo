@@ -43,6 +43,7 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
     private Handler mHandler = new Handler();
     private boolean isAnimation;
     private Method scrollListByMethod;
+    private MoveActionTask moveTask;
 
     public TransformationBarIndicator(Context context, @NonNull ObservableListView listView, @NonNull View headerView, @NonNull View animotorView) {
         super(listView);
@@ -131,7 +132,8 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
                 //永远大的减小的。 mEndPos 是最小的
                 dy =  currentY - mEndPos;
                 isAnimation = true;
-                mHandler.post(new MoveActionTask(dy));
+                moveTask = new MoveActionTask(dy);
+                mHandler.post(moveTask);
                 break;
         }
     }
@@ -192,7 +194,11 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
     }
 
     @Override
-    void onDownEvent() {}
+    void onDownEvent() {
+        if(moveTask != null) {
+            mHandler.removeCallbacks(moveTask);
+        }
+    }
 
     @Override
     void onScrollChangeg(int scrollY, boolean firstScroll) {
