@@ -4,17 +4,18 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v4.widget.ScrollerCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.animation.LinearInterpolator;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.example.david.header_animation_demo.R;
 import com.example.david.header_animation_demo.widget.ObservableListView;
 import com.example.david.header_animation_demo.widget.ScrollState;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 
 /**
@@ -41,6 +42,7 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
     private int mScrollY;
     private Handler mHandler = new Handler();
     private boolean isAnimation;
+    private Method scrollListByMethod;
 
     public TransformationBarIndicator(Context context, @NonNull ObservableListView listView, @NonNull View headerView, @NonNull View animotorView) {
         super(listView);
@@ -179,7 +181,7 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
     }
 
     private void transformationBgAlpha(float ratio) {
-        int alpha = (int) ((1.f - ratio) * 255);
+        int alpha = (int) ((ratio) * 255);
         ((AlphaChangeLayout) mAlphaLayout).setBackgroundAlpha(alpha);
     }
 
@@ -219,7 +221,7 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
             if(scrollSum + defaultScroll > distance) {
                 defaultScroll = distance - scrollSum;
             }
-            mListView.scrollListBy(defaultScroll);
+            scrollListByCompat(defaultScroll);
             scrollSum += defaultScroll;
             /**
              * 自动动画过程
@@ -229,6 +231,47 @@ public class TransformationBarIndicator extends AbsTransformationBarIndicator {
             }else {
                 isAnimation = false;
             }
+        }
+    }
+
+    private void scrollListByCompat(int y) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            mListView.scrollListBy(y);
+        } else {
+            try {
+                invokeMethod(mListView, "trackMotionScroll", new Object[]{-y, -y}, new Class[]{int.class, int.class});
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void invokeMethod(Object object, String methodName, Object[] params, Class[] paramTypes ) throws InvocationTargetException, IllegalAccessException {
+
+        if(object == null) {
+            return ;
+        }
+
+        if(scrollListByMethod != null) {
+            scrollListByMethod.setAccessible(true);
+            scrollListByMethod.invoke(object,params);
+            return ;
+        }
+
+        Class cls = object.getClass();
+        for(; cls !=  Object.class; cls = cls.getSuperclass()) {
+            try {
+                scrollListByMethod = cls.getDeclaredMethod(methodName, paramTypes);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(scrollListByMethod != null) {
+            scrollListByMethod.setAccessible(true);
+            scrollListByMethod.invoke(object, params);
         }
     }
 }
